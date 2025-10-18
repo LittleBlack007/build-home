@@ -94,7 +94,7 @@
           <!-- 这里放置3D模型视图 -->
         </div>
         <template v-if="genImge">
-          <img class="model-image-preview" :src="genImge" alt="3D模型视图" @click="() => handlePictureCardPreview([{url:genImge}])" />
+          <img class="model-image-preview" style="width: 100%; height: 100%;" :src="genImge" alt="3D模型视图" @click="() => handlePictureCardPreview([{url:genImge}])" />
         </template>
         <template v-else>
           <img class="model-image-preview" src="./images/gen.png" alt="3D模型视图" />
