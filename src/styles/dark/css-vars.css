@@ -1,4 +1,5 @@
 html.dark {
   /* 自定义深色背景颜色 */
   --el-bg-color: #626aef;
+  --el-color-primary: #007dff75;
 }

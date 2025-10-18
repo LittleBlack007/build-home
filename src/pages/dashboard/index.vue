@@ -6,10 +6,29 @@
       <div class="left-panel">
         <Logo />
         <div class="panel-section">
-          <h4>分辨率</h4>
-          <el-button type="primary" size="small">1024×576</el-button>
+          <h4>1.添加主体</h4>
+          <div class="card-item">
+            <div class="card-header">
+              <span class="card-font">主体视角</span>
+            </div>
+            <div
+              class="card-content"
+              :style="fileList.length ? { height: 'auto', padding: '12px' } : { height: '100%', padding: '0' }">
+              <el-upload
+                v-model:file-list="fileList"
+                action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
+                :list-type="fileList.length ? 'picture-card' : 'list-type'"
+                :on-preview="() => handlePictureCardPreview(fileList)"
+                :on-remove="handleRemove"
+                :limit="6"
+              >
+                <i-ep-plus v-if="fileList.length" />
+                <el-button v-else type="primary"><i-ep-plus style="font-size: 11px;font-weight: bolder;" />批量上传图片</el-button>
+              </el-upload>
+            </div>
+          </div>
         </div>
-        <div class="panel-section">
+        <!-- <div class="panel-section">
           <h4>图片数量</h4>
           <el-radio-group v-model="imageCount" size="small">
             <el-radio-button
@@ -18,20 +37,29 @@
               :value="item.label"
             >{{ item.value }}</el-radio-button>
           </el-radio-group>
-        </div>
-
-        <div class="panel-section">
-          <h4>设计风格</h4>
-          <el-radio-group v-model="designStyle" size="small">
-            <el-radio-button
-              v-for="item in designStyleEnum"
-              :key="item.label"
-              :value="item.label"
-            >{{ item.value }}</el-radio-button>
+        </div> -->
+        <div class="panel-section" style="margin-top: 20px;">
+          <h4>2.场景设置</h4>
+          <el-radio-group v-model="designCategory">
+            <el-radio-button :value="DesignCategoryEnum.recommend">推荐</el-radio-button>
+            <el-radio-button :value="DesignCategoryEnum.custom">自定义</el-radio-button>
           </el-radio-group>
+          <div class="scen-box" v-if="designCategory === DesignCategoryEnum.recommend">
+            <span class="scen-box-title">场景风格</span>
+            <div class="scen-box-content">
+              <div class="scene-style-item-box" v-for="item in designStyleEnum" :key="item.label" @click="onDesignStyleClick(item)">
+                <img class="scene-style-item-img" :src="item.url" :class="{'scene-style-item-img-seleted': item.value === designStyle}" />
+                <span class="scene-style-item-text">{{ item.value }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="scen-box" v-else>
+            <span class="scen-box-title">场景描述</span>
+            <el-input v-model="specialDesc" type="textarea" :rows="10" placeholder="请补充场景要求，例如输入：【墙体颜色，房间尺寸，场景元素】" />
+          </div>
         </div>
 
-        <div class="panel-section">
+        <!-- <div class="panel-section">
           <h4>空间定义</h4>
           <div class="space-buttons">
             <el-button
@@ -42,14 +70,12 @@
               @click="onSpaceDefinitionClick(item.label)"
             >{{ item.value }}</el-button>
           </div>
+        </div> -->
+        <div class="primary-btn" :class="{'boder-beautiful': loading}" :style="{padding: '2px', borderRadius: '4px'}">
+          <el-button style="width: 100%;" type="primary" @click="handleGenerateClick">开始生成</el-button>
         </div>
-
-        <div class="panel-section">
-          <h4>特殊描述</h4>
-          <el-input v-model="specialDesc" type="textarea" :rows="2" placeholder="请输入特殊描述" size="small" />
-        </div>
-
-        <div class="panel-section">
+        
+        <!-- <div class="panel-section">
           <h4>图片参考</h4>
           <el-upload
             v-model:file-list="fileList"
@@ -58,26 +84,28 @@
             :on-preview="handlePictureCardPreview"
             :on-remove="handleRemove"
           >
-            +
+            <i-ep-plus />
           </el-upload>
-        </div>
+        </div> -->
       </div>
-
       <!-- 中央3D视图区域 -->
       <div class="center-view">
         <div class="model-view">
           <!-- 这里放置3D模型视图 -->
-          <img src="https://picsum.photos/id/1019/800/600" alt="3D模型视图" class="model-image" />
         </div>
-        <div class="inspiration-library">
-          <div class="inspiration-item" v-for="i in 3" :key="i">
-            <img :src="`https://picsum.photos/id/${1040 + i}/100/60`" alt="灵感${i}" />
+        <template v-if="genImge">
+          <img class="model-image-preview" :src="genImge" alt="3D模型视图" @click="() => handlePictureCardPreview([{url:genImge}])" />
+        </template>
+        <template v-else>
+          <img class="model-image-preview" src="./images/gen.png" alt="3D模型视图" />
+          <div class="inspiration-library">
+            <img v-for="i in mockList" :key="i.label" class="inspiration-item" :src="i.url" />
           </div>
-        </div>
+        </template>
       </div>
 
       <!-- 右侧结构设置面板 -->
-      <div class="right-panel">
+      <!-- <div class="right-panel">
         <div class="panel-section">
           <h4>户型参考</h4>
           <div class="floorplan-reference">
@@ -98,7 +126,10 @@
         <div class="primary-btn">
           <el-button type="primary" round style="width: 100%;">主要按钮</el-button>
         </div>
-      </div>
+      </div> -->
+    </div>
+    <div ref="imageBoxRef">
+      <img v-for="item in showFileList" :key="item.name" style="display: none;" :src="item.url" />
     </div>
   </section>
 </template>
@@ -112,17 +143,35 @@ import {
   spaceDefinitionEnum,
   designStyleEnum,
   imageCountEnum,
+  DesignCategoryEnum,
+  mockList
 } from './enums.js'
 // 响应式数据
 const spaceDefinition = ref('livingroom')
 const activeTab = ref('basic')
 const imageCount = ref(2)
-const designStyle = ref('modern')
+const designCategory = ref(DesignCategoryEnum.recommend);
+const designStyle = ref(designStyleEnum[0].value);
 const specialDesc = ref('')
 const viewAngle = ref('camera')
 const zoom = ref(100)
 const wallHeight = ref(100)
 const displayOption = ref('all')
+import bai from './images/G520-A-白底图-沙发-奶酪白.jpg';
+import huxing from './images/户型图.png'
+import gen from './images/生成图.png'
+
+// 加载状态
+const loading = ref(false)
+const genImge = ref(null)
+// 处理生成点击
+const handleGenerateClick = async () => {
+  loading.value = true
+  // 模拟生成过程
+  await new Promise(resolve => setTimeout(resolve, 2000))
+  genImge.value = gen;
+  loading.value = false
+}
 
 // 空间尺寸
 const space = ref({
@@ -131,22 +180,22 @@ const space = ref({
   height: 0,
 })
 
-const imageList = reactive([
-  "https://cdn.uviewui.com/uview/swiper/1.jpg",
-  "https://cdn.uviewui.com/uview/swiper/swiper1.png",
-  "https://cdn.uviewui.com/uview/swiper/swiper2.png",
-]);
+// 处理场景风格点击
+const onDesignStyleClick = (item) => {
+  designStyle.value = item.value;
+}
 
 const imageContainer = ref(null)
-
+const imageBoxRef = ref(null)
+let viewer = null
 const initializeViewer = () => {
-  new Viewer(imageContainer.value, {
+  viewer = new Viewer(imageBoxRef.value, {
     navbar: true,
     title: true,
-    toolbar: {
-      prev: true,
-      next: true,
-    },
+    // toolbar: {
+    //   prev: true,
+    //   next: true,
+    // },
   });
 }
 
@@ -163,22 +212,17 @@ const handleTabClick = (tab) => {
   console.log('切换到标签页:', tab.name)
 }
 
-
+const showFileList = ref([])
 const fileList = ref([
   {
     name: 'food.jpeg',
-    url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100',
+    url: bai,
   },
   {
     name: 'food.jpeg',
-    url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100',
-  },
-  {
-    name: 'food.jpeg',
-    url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100',
+    url: huxing,
   },
 ])
-
 const dialogImageUrl = ref('')
 const dialogVisible = ref(false)
 
@@ -186,13 +230,41 @@ const handleRemove = (uploadFile, uploadFiles) => {
   console.log(uploadFile, uploadFiles)
 }
 
-const handlePictureCardPreview = (uploadFile) => {
-  dialogImageUrl.value = uploadFile.url
-  dialogVisible.value = true
+const handlePictureCardPreview = (fileList) => {
+  showFileList.value = fileList;
+  
+  setTimeout(() => {
+    initializeViewer()
+    // viewer.view(0);
+    viewer.show()
+  }, 30)
 }
 </script>
 
 <style lang="scss" scoped>
+@property --border-gradient-angle {
+  syntax: "<angle>";
+  inherits: true;
+  initial-value: 0turn;
+}
+
+.boder-beautiful {
+  background-image: conic-gradient(from var(--border-gradient-angle) at 50% 50%, transparent, #70ffaf 14%, transparent 17%);
+  border-radius: var(--outer-radius);
+  background-size: contain;
+  padding: var(--border-size);
+  animation: buttonBorderSpin 4s linear infinite 0ms;
+}
+@keyframes buttonBorderSpin {
+  0% {
+    --border-gradient-angle: 0turn;
+  }
+
+  100% {
+    --border-gradient-angle: 1turn;
+  }
+}
+
 :deep(.el-button) {
   background-color: rgb(45 45 45);
 }
@@ -222,8 +294,11 @@ const handlePictureCardPreview = (uploadFile) => {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #2d2d2d;
+  background-color: transparent;
   color: #fff;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: normal;
 }
 
 
@@ -238,12 +313,150 @@ const handlePictureCardPreview = (uploadFile) => {
 
 /* 左侧控制面板 */
 .left-panel {
-  width:300px;
-  background-color: #1e1e1e;
-  padding: 8px;
-  overflow-y: auto;
-  border-right: 1px solid #444;
+  margin-top: 2px;
+  background-color: #2e2e2e;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 55px);
+  padding: 24px;
   position: relative;
+  transition: all .5s;
+  width: 316px;
+  border: 1px solid #5d5d5d;
+  border-radius: 8px;
+  overflow-y: auto;
+  .card-item {
+    border-radius: 8px;
+    margin-bottom: 12px;
+    height: 190px;
+    :deep(.el-icon.avatar-uploader-icon) {
+      height: 90px;
+      width: 90px;
+    }
+    :deep(.el-upload-list__item-status-label) {
+      display: none;
+    }
+    :deep(.el-upload-list__item) {
+      height: 90px;
+      width: 90px;
+    }
+    :deep(.el-upload--picture-card) {
+      height: 90px;
+      width: 90px;
+      background-color: #494949;
+      border: 0;
+    }
+    .card-header {
+      align-items: center;
+      background-color: #515151;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      padding: 12px;
+    }
+    .card-content {
+      align-items: center;
+      background-image: url(/src/assets/img-bg.png);
+      background-repeat: repeat;
+      background-size: 20px 20px;
+      border-bottom-left-radius: 8px;
+      border-bottom-right-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .normal-image {
+      border: 2px solid rgb(30, 30, 30);
+      border-radius: 8px;
+      margin-bottom: 12px;
+      margin-right: 2px;
+      background-color: rgba(255, 255, 255, 0);
+    }
+    .image-box {
+      align-items: center;
+      border-radius: 8px;
+      box-sizing: content-box;
+      cursor: pointer;
+      display: flex;
+      height: 90px;
+      justify-content: center;
+      -o-object-fit: contain;
+      object-fit: contain;
+      position: relative;
+      width: 90px;
+    }
+  }
+  .card-font {
+    font-size: 12px;
+    font-weight: 400;
+    line-height: normal;
+    margin-right: 2px;
+  }
+  .scen-box {
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background-color: #464646;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    padding-bottom: 12px;
+    padding-left: 10px;
+    margin-top: 8px;
+    flex-direction: column;
+    :deep(.el-textarea__inner) {
+      border: none;
+      resize: none;
+      box-shadow: unset;
+      padding: 0;
+      font-size: 12px;
+      padding-right: 8px;
+    }
+    .scen-box-title {
+      font-size: 12px;
+      font-weight: 400;
+      line-height: normal;
+      margin-right: 2px;
+      padding: 12px 0;
+    }
+  }
+  .scen-box-content {
+    display: flex;
+    flex-wrap: wrap;
+    height: 180px;
+  }
+  .scene-style-item-box {
+    margin-right: 1px;
+    cursor: pointer;
+    .scene-style-item-img {
+      align-items: center;
+      border: 2px solid transparent;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      height: 66px;
+      justify-content: center;
+      position: relative;
+      width: 66px;
+    }
+    .scene-style-item-text {
+      align-items: center;
+      border: 2px solid transparent;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      position: relative;
+    }
+  }
+  .scene-style-item-img:hover {
+    transform: scale(1.1);
+    transition: transform 0.5s ease;
+  }
+  .scene-style-item-img-seleted {
+    border-color: #007dffc4 !important;
+  }
   .title {
     font-size: 16px;
     font-weight: 600;
@@ -279,41 +492,56 @@ const handlePictureCardPreview = (uploadFile) => {
       margin-top: 10px;
     }
   }
+  .primary-btn {
+    width: calc(100% - 60px);
+    position: absolute;
+    bottom: 20px;
+    :deep(.el-button--primary) {
+      background-color: #646cff;
+    }
+  }
 }
 
 /* 中央3D视图区域 */
 .center-view {
   flex: 1;
+  padding: 0 12px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #2d2d2d;
+  background-color: rgb(0 0 0);
   flex-direction: column;
   
-  .model-view {
-    position: relative;
-    width: 98%;
-    height: calc(100% - 90px);
-    border: 1px solid #444;
-
-    .model-image {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
+  .model-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .model-image-preview {
+    margin-bottom: 32px;
+    width: 56vh;
   }
   .inspiration-library {
-    padding-left: 9px;
-    margin: 8px 0;
     display: flex;
-    gap: 10px;
-    width: 100%;
+    justify-content: space-between;
+    width: 56vh;
     .inspiration-item {
-      img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
+      align-items: center;
+      background-color: #171717;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      height: 13vh;
+      justify-content: center;
+      width: 13vh;
+    }
+    .inspiration-item:hover {
+      transform: scale(1.1);
+      transition: transform 0.5s ease;
+    }
+    .inspiration-item-seleted {
+      border-color: #007dffc4 !important;
     }
   }
 }

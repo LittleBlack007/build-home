@@ -1,3 +1,11 @@
+import ai from './images/ai.png'
+import beiou from './images/beiou.png'
+import fashi from './images/fashi.png'
+import qingshe from './images/qingshe.png'
+import xiandai from './images/xiandai.png'
+import yishi from './images/yishi.png'
+import yuanmu from './images/yuanmu.png'
+import zhonggu from './images/zhonggu.png'
 export const spaceDefinitionEnum = [
     {
         label: 'livingroom',
@@ -27,21 +35,45 @@ export const spaceDefinitionEnum = [
 
 export const designStyleEnum = [
     {
-        label: 'modern',
-        value: '现代',
+        label: 'ai',
+        value: '智能推荐',
+        url: ai,
     },
     {
-        label: 'chinese',
-        value: '中式',
+        label: 'beiou',
+        value: '北欧',
+        url: beiou,
     },
     {
-        label: 'japanese',
-        value: '日式',
+        label: 'fashi',
+        value: '法式',
+        url: fashi,
     },
     {
-        label: 'light',
+        label: 'qingshe',
         value: '轻奢',
+        url: qingshe,
     },
+    {
+        label: 'xiandai',
+        value: '现代',
+        url: xiandai,
+    },
+    {
+        label: 'yishi',
+        value: '意式',
+        url: yishi,
+    },
+    {
+        label: 'yuamu',
+        value: '原木',
+        url: yishi,
+    },
+    {
+        label: 'zhonggu',
+        value: '中国风',
+        url: zhonggu,
+    }
 ]
 
 export const imageCountEnum = [
@@ -61,4 +93,32 @@ export const imageCountEnum = [
         label: 8,
         value: '8',
     },
+]
+
+export const DesignCategoryEnum = {
+    recommend: 'recommend',
+    custom: 'custom',
+}
+
+export const mockList = [
+    {
+        label: 'xiandai',
+        value: '现代',
+        url: xiandai,
+    },
+    {
+        label: 'yishi',
+        value: '意式',
+        url: yishi,
+    },
+    {
+        label: 'yuamu',
+        value: '原木',
+        url: yishi,
+    },
+    {
+        label: 'zhonggu',
+        value: '中国风',
+        url: zhonggu,
+    }
 ]
