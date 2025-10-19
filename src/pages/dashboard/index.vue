@@ -95,7 +95,7 @@
         </div>
         <img class="loading-image" v-if="loading" src="./images/loading.svg" alt="">
         <template v-if="genImge">
-          <img class="model-image-preview" style="height: 80%;" :src="genImge" @click="showGenImage" />
+          <img style="height: 80%;" :src="genImge" @click="showGenImage" />
         </template>
         <template v-else>
           <img class="model-image-preview" src="./images/gen.png" alt="3D模型视图" />
