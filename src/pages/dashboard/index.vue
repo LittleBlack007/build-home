@@ -89,12 +89,13 @@
         </div> -->
       </div>
       <!-- 中央3D视图区域 -->
-      <div class="center-view">
+      <div class="center-view dynamic-image">
         <div class="model-view">
           <!-- 这里放置3D模型视图 -->
         </div>
+        <img class="loading-image" v-if="loading" src="./images/loading.svg" alt="">
         <template v-if="genImge">
-          <img class="model-image-preview" style="width: 100%; height: 100%;" :src="genImge" alt="3D模型视图" @click="() => handlePictureCardPreview([{url:genImge}])" />
+          <img class="model-image-preview" style="height: 80%;" :src="genImge" @click="showGenImage" />
         </template>
         <template v-else>
           <img class="model-image-preview" src="./images/gen.png" alt="3D模型视图" />
@@ -135,7 +136,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import Viewer from "viewerjs";
 import "viewerjs/dist/viewer.css";
 import Logo from './logo.vue'
@@ -166,6 +167,7 @@ const loading = ref(false)
 const genImge = ref(null)
 // 处理生成点击
 const handleGenerateClick = async () => {
+  if(loading.value) return;
   loading.value = true
   // 模拟生成过程
   await new Promise(resolve => setTimeout(resolve, 2000))
@@ -230,14 +232,43 @@ const handleRemove = (uploadFile, uploadFiles) => {
   console.log(uploadFile, uploadFiles)
 }
 
-const handlePictureCardPreview = (fileList) => {
-  showFileList.value = fileList;
+// 查看生成图大图
+function showGenImage() {
+  if (!genImge.value) return; // 确保有图片再显示
+  showFileList.value = [{url: genImge.value, name: '生成图'}];
   
+  // 销毁旧的viewer实例
+  if (viewer) {
+    viewer.destroy();
+  }
+  
+  // 等待DOM更新后重新初始化viewer
   setTimeout(() => {
-    initializeViewer()
-    // viewer.view(0);
-    viewer.show()
-  }, 30)
+    viewer = new Viewer(imageBoxRef.value, {
+      navbar: true,
+      title: true,
+    });
+    viewer.show();
+  }, 0);
+}
+// 查看主体视角图片
+const handlePictureCardPreview = () => {
+  if (fileList.value.length === 0) return; // 确保有图片再显示
+  showFileList.value = [...fileList.value]; // 创建新数组触发响应式更新
+  
+  // 销毁旧的viewer实例
+  if (viewer) {
+    viewer.destroy();
+  }
+  
+  // 等待DOM更新后重新初始化viewer
+  setTimeout(() => {
+    viewer = new Viewer(imageBoxRef.value, {
+      navbar: true,
+      title: true,
+    });
+    viewer.show();
+  }, 0);
 }
 </script>
 
@@ -322,7 +353,7 @@ const handlePictureCardPreview = (fileList) => {
   position: relative;
   transition: all .5s;
   width: 316px;
-  border: 1px solid #5d5d5d;
+  border: 1px solid var(--el-color-primary);
   border-radius: 8px;
   overflow-y: auto;
   .card-item {
@@ -512,7 +543,15 @@ const handlePictureCardPreview = (fileList) => {
   justify-content: center;
   background-color: rgb(0 0 0);
   flex-direction: column;
-  
+  position: relative;
+  .loading-image {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9;
+    animation: unset;
+  }
   .model-image {
     width: 100%;
     height: 100%;
@@ -520,7 +559,7 @@ const handlePictureCardPreview = (fileList) => {
   }
   .model-image-preview {
     margin-bottom: 32px;
-    width: 56vh;
+    height: 56vh;
   }
   .inspiration-library {
     display: flex;
@@ -637,5 +676,37 @@ const handlePictureCardPreview = (fileList) => {
 }
 .w-100 {
   width: 100%;
+}
+
+/* 定义floatup动画，使元素向上浮动并逐渐消失 */
+@keyframes floatup {
+  from {
+    transform: translate(-50%, -50%) scale(1); /* 初始状态 */
+    opacity: 1;
+  }
+  to {
+    transform: translate(-50%, -150%) scale(2); /* 终止状态，将元素放大2倍，并向上移动50% */
+    opacity: 0;
+  }
+}
+
+/* 定义size-up动画，使元素从初始状态缩放到35倍大小 */
+@keyframes size-up {
+  from {
+    transform: scale(0.1); /* 初始状态，将元素缩小10倍 */
+  }
+  to {
+    transform: scale(1); /* 终止状态，将元素放大35倍 */
+  }
+}
+
+/* 将size-up动画添加到img元素中，使图片缩放到35倍大小 */
+.dynamic-image {
+  img {
+    animation: size-up 1s ease-out forwards; /* 动画持续时间为6秒，并在动画结束后保持最终状态 */
+  }
+}
+:deep(button:focus-visible) {
+  outline: none;
 }
 </style>
