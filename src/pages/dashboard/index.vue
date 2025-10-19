@@ -13,7 +13,7 @@
             </div>
             <div
               class="card-content"
-              :style="fileList.length ? { height: 'auto', padding: '12px' } : { height: '100%', padding: '0' }">
+              :style="fileList.length ? { height: '100%', padding: '12px' } : { height: '100%', padding: '0' }">
               <el-upload
                 v-model:file-list="fileList"
                 action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
@@ -168,7 +168,7 @@ const genImge = ref(null)
 const handleGenerateClick = async () => {
   loading.value = true
   // 模拟生成过程
-  await new Promise(resolve => setTimeout(resolve, 2000))
+  await new Promise(resolve => setTimeout(resolve, 4000))
   genImge.value = gen;
   loading.value = false
 }
