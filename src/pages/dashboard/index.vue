@@ -16,7 +16,7 @@
               :style="fileList.length ? { height: '100%', padding: '12px' } : { height: '100%', padding: '0' }">
               <el-upload
                 v-model:file-list="fileList"
-                action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
+                :http-request="handleUpload"
                 :list-type="fileList.length ? 'picture-card' : 'list-type'"
                 :on-preview="() => handlePictureCardPreview(fileList)"
                 :on-remove="handleRemove"
@@ -158,7 +158,7 @@ const viewAngle = ref('camera')
 const zoom = ref(100)
 const wallHeight = ref(100)
 const displayOption = ref('all')
-import bai from './images/G520-A-白底图-沙发-奶酪白.jpg';
+import bai from './images/G520-A-白底图-沙发-沼泽黑.jpg';
 import huxing from './images/户型图.png'
 import gen from './images/生成图.png'
 
@@ -168,6 +168,7 @@ const genImge = ref(null)
 // 处理生成点击
 const handleGenerateClick = async () => {
   if(loading.value) return;
+  genImge.value = null;
   loading.value = true
   // 模拟生成过程
   await new Promise(resolve => setTimeout(resolve, 4000))
@@ -225,9 +226,11 @@ const fileList = ref([
     url: huxing,
   },
 ])
-const dialogImageUrl = ref('')
-const dialogVisible = ref(false)
 
+// 上传图片
+function handleUpload(options) {
+  console.log(options)
+}
 const handleRemove = (uploadFile, uploadFiles) => {
   console.log(uploadFile, uploadFiles)
 }
@@ -368,8 +371,8 @@ const handlePictureCardPreview = () => {
       display: none;
     }
     :deep(.el-upload-list__item) {
-      height: 90px;
-      width: 90px;
+      height: 88px;
+      width: 88px;
     }
     :deep(.el-upload--picture-card) {
       height: 90px;
@@ -412,8 +415,7 @@ const handlePictureCardPreview = () => {
       display: flex;
       height: 90px;
       justify-content: center;
-      -o-object-fit: contain;
-      object-fit: contain;
+      object-fit: cover;
       position: relative;
       width: 90px;
     }
@@ -707,6 +709,6 @@ const handlePictureCardPreview = () => {
   }
 }
 :deep(button:focus-visible) {
-  outline: none;
+  outline: none !important;
 }
 </style>

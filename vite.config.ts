@@ -16,6 +16,18 @@ export default defineConfig({
       '@': pathSrc,
     },
   },
+  server: {
+    host: '0.0.0.0', // 监听所有地址，包括局域网和公网地址
+    port: 5555, // 设置服务端口
+    // https: 'HTTP/2', // 是否开启 https
+    proxy: {
+      '/api1': {
+        target: 'http://127.0.0.1:8990/',
+        changeOrigin: true,
+        rewrite: path => path.replace(/^\/api1/, '')
+      },
+    }
+  },
   plugins: [
     Vue(),
     AutoImport({
