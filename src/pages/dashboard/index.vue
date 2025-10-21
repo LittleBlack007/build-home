@@ -117,9 +117,9 @@
         </template>
         <template v-else>
           <img class="model-image-preview" src="./images/gen.png" alt="3D模型视图" />
-          <div class="inspiration-library">
+          <!-- <div class="inspiration-library">
             <img v-for="i in mockList" :key="i.label" class="inspiration-item" :src="i.url" />
-          </div>
+          </div> -->
         </template>
       </div>
 
@@ -509,7 +509,7 @@ const handleInspirationClick = (item) => {
     }
     .scene-style-item-text {
       align-items: center;
-      border: 2px solid transparent;
+      border: 4px solid transparent;
       border-radius: 8px;
       cursor: pointer;
       display: flex;
@@ -522,7 +522,7 @@ const handleInspirationClick = (item) => {
     transition: transform 0.5s ease;
   }
   .scene-style-item-img-seleted {
-    border-color: #007dffc4 !important;
+    border-color: #00ff0dc4 !important;
   }
   .title {
     font-size: 16px;
@@ -674,7 +674,7 @@ const handleInspirationClick = (item) => {
       transition: transform 0.5s ease;
     }
     .inspiration-item-seleted {
-      border-color: #007dffc4 !important;
+      border-color: #00ff0dc4 !important;
     }
   }
 }
