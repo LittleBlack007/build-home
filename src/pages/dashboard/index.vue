@@ -18,7 +18,7 @@
                 v-model:file-list="fileList"
                 :http-request="handleUpload"
                 :list-type="fileList.length ? 'picture-card' : 'list-type'"
-                :on-preview="() => handlePictureCardPreview(fileList)"
+                :on-preview="handlePictureCardPreview"
                 :on-remove="handleRemove"
                 :limit="6"
               >
@@ -279,7 +279,9 @@ function showGenImage() {
   }, 0);
 }
 // 查看主体视角图片
-const handlePictureCardPreview = () => {
+const handlePictureCardPreview = (uploadFile) => {
+  const index = fileList.value.findIndex(item => item.uid === uploadFile.uid)
+  console.log(index)
   if (fileList.value.length === 0) return; // 确保有图片再显示
   showFileList.value = [...fileList.value]; // 创建新数组触发响应式更新
   
@@ -294,7 +296,7 @@ const handlePictureCardPreview = () => {
       navbar: true,
       title: true,
     });
-    viewer.show();
+    viewer.view(index);
   }, 0);
 }
 
