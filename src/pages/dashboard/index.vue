@@ -42,6 +42,7 @@
           <h4>2.场景设置</h4>
           <el-radio-group v-model="designCategory">
             <el-radio-button :value="DesignCategoryEnum.recommend">推荐</el-radio-button>
+            <el-radio-button :value="DesignCategoryEnum.space">空间定义</el-radio-button>
             <el-radio-button :value="DesignCategoryEnum.custom">自定义</el-radio-button>
           </el-radio-group>
           <div class="scen-box" v-if="designCategory === DesignCategoryEnum.recommend">
@@ -53,26 +54,43 @@
               </div>
             </div>
           </div>
+          <div class="scen-box" v-else-if="designCategory === DesignCategoryEnum.space">
+            <span class="scen-box-title">空间定义</span>
+            <div class="space-buttons">
+              <el-button
+                :type="spaceDefinition === item.label ? 'primary' : 'default'"
+                style="width: 66px;"
+                v-for="item in spaceDefinitionEnum"
+                :key="item.label"
+                @click="onSpaceDefinitionClick(item.label)"
+              >{{ item.value }}</el-button>
+            </div>
+            <span class="scen-box-title">空间尺寸</span>
+            <div class="number-container">
+              <el-input-number class="number-box" v-model="space.long" controls-position="right" placeholder="长(m)"></el-input-number>*
+              <el-input-number class="number-box" v-model="space.width" controls-position="right" placeholder="宽(m)"></el-input-number>*
+              <el-input-number class="number-box" v-model="space.height" controls-position="right" placeholder="高(m)"></el-input-number>
+            </div>
+            <span class="scen-box-title">家具搭配</span>
+            <div class="space-buttons">
+              <el-button
+                :type="pType === item.label ? 'primary' : 'default'"
+                style="width: 66px;"
+                v-for="item in productTypeEnum"
+                :key="item.label"
+                @click="onPTypeClick(item.label)"
+              >{{ item.value }}</el-button>
+            </div>
+          </div>
           <div class="scen-box" v-else>
             <span class="scen-box-title">场景描述</span>
             <el-input v-model="specialDesc" type="textarea" :rows="10" placeholder="请补充场景要求，例如输入：【墙体颜色，房间尺寸，场景元素】" />
           </div>
         </div>
 
-        <!-- <div class="panel-section">
-          <h4>空间定义</h4>
-          <div class="space-buttons">
-            <el-button
-              :type="spaceDefinition === item.label ? 'primary' : 'default'"
-              style="width: 66px;"
-              v-for="item in spaceDefinitionEnum"
-              :key="item.label"
-              @click="onSpaceDefinitionClick(item.label)"
-            >{{ item.value }}</el-button>
-          </div>
-        </div> -->
-        <div class="primary-btn" :class="{'boder-beautiful': loading}" :style="{padding: '2px', borderRadius: '4px'}">
-          <el-button style="width: 100%;" type="primary" @click="handleGenerateClick">开始生成</el-button>
+        <div class="panel-section" style="margin-top: 20px;">
+          <h4>3.空间色系</h4>
+          <el-color-picker v-model="themeColor" />
         </div>
         
         <!-- <div class="panel-section">
@@ -106,28 +124,24 @@
       </div>
 
       <!-- 右侧结构设置面板 -->
-      <!-- <div class="right-panel">
+      <div class="right-panel">
         <div class="panel-section">
-          <h4>户型参考</h4>
-          <div class="floorplan-reference">
-            <div class="floorplan-preview">
-              <div class="floorplan-item" id="viewerjs" ref="imageContainer">
-                <img src="https://picsum.photos/id/1031/200/200" alt="户型图" class="floorplan-image" />
-                <div class="room-labels"></div>
-              </div>
-            </div>
+          <h4>4.成品搭配</h4>
+          <div class="inspiration-library">
+            <img
+              v-for="i in mockList"
+              :key="i.label"
+              class="inspiration-item"
+              :src="i.url"
+              :class="{'inspiration-item-seleted': selectedInspiration.includes(i.label)}"
+              @click="() => handleInspirationClick(i)"
+            />
           </div>
         </div>
-        <div class="panel-section">
-          <h4>空间尺寸</h4>
-          <el-input-number class="w-100" v-model="space.long" controls-position="right" placeholder="长(m)"></el-input-number>
-          <el-input-number class="w-100" v-model="space.width" controls-position="right" placeholder="宽(m)"></el-input-number>
-          <el-input-number class="w-100" v-model="space.height" controls-position="right" placeholder="高(m)"></el-input-number>
+        <div class="primary-btn" :class="{'boder-beautiful': loading}" :style="{padding: '2px', borderRadius: '4px'}">
+          <el-button style="width: 100%;" type="primary" @click="handleGenerateClick">开始生成</el-button>
         </div>
-        <div class="primary-btn">
-          <el-button type="primary" round style="width: 100%;">主要按钮</el-button>
-        </div>
-      </div> -->
+      </div>
     </div>
     <div ref="imageBoxRef">
       <img v-for="item in showFileList" :key="item.name" style="display: none;" :src="item.url" />
@@ -145,7 +159,8 @@ import {
   designStyleEnum,
   imageCountEnum,
   DesignCategoryEnum,
-  mockList
+  mockList,
+  productTypeEnum,
 } from './enums.js'
 // 响应式数据
 const spaceDefinition = ref('livingroom')
@@ -178,15 +193,20 @@ const handleGenerateClick = async () => {
 
 // 空间尺寸
 const space = ref({
-  long: 0,
-  width: 0,
-  height: 0,
+  long: null,
+  width: null,
+  height: null,
 })
 
 // 处理场景风格点击
 const onDesignStyleClick = (item) => {
   designStyle.value = item.value;
 }
+
+// 空间色系
+const themeColor = ref();
+
+
 
 const imageContainer = ref(null)
 const imageBoxRef = ref(null)
@@ -195,12 +215,9 @@ const initializeViewer = () => {
   viewer = new Viewer(imageBoxRef.value, {
     navbar: true,
     title: true,
-    // toolbar: {
-    //   prev: true,
-    //   next: true,
-    // },
   });
 }
+
 
 onMounted(() => {
   initializeViewer()
@@ -226,6 +243,13 @@ const fileList = ref([
     url: huxing,
   },
 ])
+
+// 产品类型
+const pType = ref('')
+const onPTypeClick = (label) => {
+  pType.value = label
+}
+
 
 // 上传图片
 function handleUpload(options) {
@@ -272,6 +296,16 @@ const handlePictureCardPreview = () => {
     });
     viewer.show();
   }, 0);
+}
+
+const selectedInspiration = ref([])
+// 处理成品搭配点击
+const handleInspirationClick = (item) => {
+  if(selectedInspiration.value.includes(item.label)){
+    selectedInspiration.value = selectedInspiration.value.filter(i => i !== item.label)
+    return
+  }
+  selectedInspiration.value = [...selectedInspiration.value, item.label]
 }
 </script>
 
@@ -520,6 +554,12 @@ const handlePictureCardPreview = () => {
       gap: 5px;
     }
 
+    .number-container {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
     .upload-btn {
       width: 100%;
       margin-top: 10px;
@@ -528,7 +568,7 @@ const handlePictureCardPreview = () => {
   .primary-btn {
     width: calc(100% - 60px);
     position: absolute;
-    bottom: 20px;
+    bottom: 30px;
     :deep(.el-button--primary) {
       background-color: #646cff;
     }
@@ -582,14 +622,14 @@ const handlePictureCardPreview = () => {
       transition: transform 0.5s ease;
     }
     .inspiration-item-seleted {
-      border-color: #007dffc4 !important;
+      border-color: #21c4ecc4 !important;
     }
   }
 }
 
 /* 右侧结构设置面板 */
 .right-panel {
-  width: 250px;
+  width: 270px;
   height: 100vh;
   background-color: #1e1e1e;
   padding: 8px;
@@ -599,85 +639,52 @@ const handlePictureCardPreview = () => {
   .primary-btn {
     width: calc(100% - 16px);
     position: absolute;
-    bottom: 20px;
+    bottom: 30px;
+    :deep(.el-button--primary) {
+      background-color: #646cff;
+    }
   }
   .panel-section {
     margin-bottom: 25px;
-
     h4 {
       margin-bottom: 10px;
       color: #fff;
       font-size: 14px;
       font-weight: 600;
     }
-
-    .structure-settings {
-      .setting-item {
-        margin-bottom: 15px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-
-        span:first-child {
-          width: 50px;
-          font-size: 12px;
-        }
-
-        .el-slider {
-          flex: 1;
-        }
-
-        span:last-child {
-          width: 30px;
-          font-size: 12px;
-          text-align: right;
-        }
-      }
-    }
-
-    .quick-actions {
+  }
+  .inspiration-library {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;;
+    .inspiration-item {
+      align-items: center;
+      background-color: #171717;
+      border-radius: 12px;
+      cursor: pointer;
       display: flex;
-      flex-direction: column;
-      gap: 5px;
+      height: 13vh;
+      justify-content: center;
+      width: 13vh;
+      border: 2px solid transparent;
     }
-
-    .floorplan-reference {
-      .floorplan-preview {
-        position: relative;
-        width: 100%;
-        margin-bottom: 10px;
-        .floorplan-item {
-          width: 117px;
-          height: 117px;
-          position: relative;
-        }
-        .floorplan-image {
-          width: 100%;
-          height: 100%;
-          object-fit: contain;
-          margin-right: 4px;
-          border: 1px solid #444;
-          border-radius: 4px;
-        }
-        .room-labels {
-          position: absolute;
-          top: -17px;
-          right: -19px;
-          width: 0;
-          height: 0;
-          border: 18px solid var(--el-color-success);
-          border-bottom-color: transparent;
-          border-top-color: transparent;
-          border-left-color: transparent;
-          transform: rotateZ(135deg);
-          border-radius: 4px;
-        }
-      }
+    .inspiration-item:hover {
+      transform: scale(1.03);
+      transition: transform 0.5s ease;
+    }
+    .inspiration-item-seleted {
+      border-color: #007dffc4 !important;
     }
   }
 }
 .w-100 {
   width: 100%;
+}
+.number-box {
+  width: 90px;
+  background: #2e2e2e;
+  border-radius: 4px;
 }
 
 /* 定义floatup动画，使元素向上浮动并逐渐消失 */
@@ -710,5 +717,14 @@ const handlePictureCardPreview = () => {
 }
 :deep(button:focus-visible) {
   outline: none !important;
+}
+:deep(.el-color-picker__color-inner) {
+  width: 100%;
+  i{
+    display: none;
+  }
+}
+:deep(.el-color-picker) {
+  width: 100%;
 }
 </style>

@@ -6,6 +6,7 @@ import xiandai from './images/xiandai.png'
 import yishi from './images/yishi.png'
 import yuanmu from './images/yuanmu.png'
 import zhonggu from './images/zhonggu.png'
+
 export const spaceDefinitionEnum = [
     {
         label: 'livingroom',
@@ -30,6 +31,21 @@ export const spaceDefinitionEnum = [
     {
         label: 'children room',
         value: '儿童房',
+    },
+]
+
+export const productTypeEnum = [
+    {
+        label: 'livingroom',
+        value: '茶几',
+    },
+    {
+        label: 'bedroom',
+        value: '沙发',
+    },
+    {
+        label: 'kitchen',
+        value: '床',
     },
 ]
 
@@ -67,7 +83,7 @@ export const designStyleEnum = [
     {
         label: 'yuamu',
         value: '原木',
-        url: yishi,
+        url: yuanmu,
     },
     {
         label: 'zhonggu',
@@ -98,6 +114,7 @@ export const imageCountEnum = [
 export const DesignCategoryEnum = {
     recommend: 'recommend',
     custom: 'custom',
+    space: 'space',
 }
 
 export const mockList = [
