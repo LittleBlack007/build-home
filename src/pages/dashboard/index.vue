@@ -43,7 +43,7 @@
           <el-radio-group v-model="designCategory">
             <el-radio-button :value="DesignCategoryEnum.recommend">推荐</el-radio-button>
             <el-radio-button :value="DesignCategoryEnum.space">空间定义</el-radio-button>
-            <el-radio-button :value="DesignCategoryEnum.custom">自定义</el-radio-button>
+            <el-radio-button :value="DesignCategoryEnum.custom">补充描述</el-radio-button>
           </el-radio-group>
           <div class="scen-box" v-if="designCategory === DesignCategoryEnum.recommend">
             <span class="scen-box-title">场景风格</span>
@@ -63,7 +63,7 @@
                 v-for="item in spaceDefinitionEnum"
                 :key="item.label"
                 @click="onSpaceDefinitionClick(item.label)"
-              >{{ item.value }}</el-button>
+              >{{ item.label }}</el-button>
             </div>
             <span class="scen-box-title">空间尺寸</span>
             <div class="number-container">
@@ -74,11 +74,11 @@
             <span class="scen-box-title">家具搭配</span>
             <div class="space-buttons">
               <el-button
-                :type="pType === item.label ? 'primary' : 'default'"
+                :type="pType === item.value ? 'primary' : 'default'"
                 style="width: 66px;"
                 v-for="item in productTypeEnum"
-                :key="item.label"
-                @click="onPTypeClick(item.label)"
+                :key="item.value"
+                @click="onPTypeClick(item.value)"
               >{{ item.value }}</el-button>
             </div>
           </div>
@@ -92,19 +92,6 @@
           <h4>3.空间色系</h4>
           <el-color-picker v-model="themeColor" />
         </div>
-        
-        <!-- <div class="panel-section">
-          <h4>图片参考</h4>
-          <el-upload
-            v-model:file-list="fileList"
-            action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
-            list-type="picture-card"
-            :on-preview="handlePictureCardPreview"
-            :on-remove="handleRemove"
-          >
-            <i-ep-plus />
-          </el-upload>
-        </div> -->
       </div>
       <!-- 中央3D视图区域 -->
       <div class="center-view dynamic-image">
@@ -113,13 +100,13 @@
         </div>
         <img class="loading-image" v-if="loading" src="./images/loading.svg" alt="">
         <template v-if="genImge">
-          <img style="height: 80%;" :src="genImge" @click="showGenImage" />
+          <img style="width: 90%;" :src="genImge" @click="showGenImage" />
         </template>
         <template v-else>
           <img class="model-image-preview" src="./images/gen.png" alt="3D模型视图" />
-          <!-- <div class="inspiration-library">
-            <img v-for="i in mockList" :key="i.label" class="inspiration-item" :src="i.url" />
-          </div> -->
+          <div class="inspiration-library">
+            <img v-for="i in selectedInspiration" :key="i" class="inspiration-item" :src="i" @dblclick="handleInspirationClick({url: i})" />
+          </div>
         </template>
       </div>
 
@@ -130,10 +117,10 @@
           <div class="inspiration-library">
             <img
               v-for="i in mockList"
-              :key="i.label"
+              :key="i.name"
               class="inspiration-item"
               :src="i.url"
-              :class="{'inspiration-item-seleted': selectedInspiration.includes(i.label)}"
+              :class="{'inspiration-item-seleted': selectedInspiration.includes(i.url)}"
               @click="() => handleInspirationClick(i)"
             />
           </div>
@@ -159,8 +146,11 @@ import {
   designStyleEnum,
   imageCountEnum,
   DesignCategoryEnum,
-  mockList,
   productTypeEnum,
+  XD_CJ,
+  ZS_CJ,
+  XD_SF,
+  ZS_SF,
 } from './enums.js'
 // 响应式数据
 const spaceDefinition = ref('livingroom')
@@ -176,19 +166,69 @@ const displayOption = ref('all')
 import bai from './images/G520-A-白底图-沙发-沼泽黑.jpg';
 import huxing from './images/户型图.png'
 import gen from './images/生成图.png'
+import axios from "axios";
 
 // 加载状态
 const loading = ref(false)
 const genImge = ref(null)
+const taskId = ref('4836468373445143450')
+// 查询任务状态
+const queryTaskStatus = async () => {
+  if(!taskId.value) return;
+  loading.value = true;
+  let passIs = false;
+  axios.get(`/aiApi/Ai/Jm/query/${taskId.value}`).then((res) => {
+    if(res.data.state === 100 && res.data.data) {
+      genImge.value = res.data.data;
+      passIs = true;
+    }
+  }).catch((error) => {
+    console.log(error);
+  }).finally(() => {
+    console.log(passIs)
+    if(passIs) {
+      loading.value = false;
+    }else {
+      setTimeout(() => {
+        queryTaskStatus();
+      }, 6000);
+    }
+  });
+}
 // 处理生成点击
 const handleGenerateClick = async () => {
   if(loading.value) return;
   genImge.value = null;
   loading.value = true
   // 模拟生成过程
-  await new Promise(resolve => setTimeout(resolve, 4000))
-  genImge.value = gen;
-  loading.value = false
+  await axios.post('/aiApi/Ai/Jm/generate-from-image', {
+    "cfgScale": 7.5,
+    "height": 1024,
+    "image_urls": [
+      ...fileList.value.map(item => item.url),
+      ...selectedInspiration.value,
+    ],
+    "kongJian": spaceDefinition.value,
+    "model": "jimeng-v1.0",
+    "negativePrompt": "string",
+    "prompt": specialDesc.value || '生成空间全景图',
+    "referenceStrength": 0.5,
+    "samples": 1,
+    "seed": 123456,
+    "steps": 20,
+    "styleType": designStyle.value,
+    "width": 1024
+  }).then((res) => {
+    console.log(res)
+    if(res.data.state === 100) {
+      const data = JSON.parse(res.data.data)
+      taskId.value = data.data.task_id;
+      queryTaskStatus();
+    }
+    
+  }).catch((error) => {
+    console.log(error);
+  });
 }
 
 // 空间尺寸
@@ -201,6 +241,7 @@ const space = ref({
 // 处理场景风格点击
 const onDesignStyleClick = (item) => {
   designStyle.value = item.value;
+  renderInspirationLibrary();
 }
 
 // 空间色系
@@ -224,8 +265,21 @@ onMounted(() => {
 })
 
 // 处理空间定义点击
+const mockList = ref([...ZS_CJ, ...XD_CJ, ...ZS_SF, ...XD_SF])
+const renderInspirationLibrary = () => {
+  // if(pType.value === '茶几' && designStyle.value === '中国风') {
+  //   mockList.value = ZS_CJ
+  // } else if(pType.value === '茶几' && designStyle.value === '现代') { 
+  //   mockList.value = XD_CJ
+  // } else if(pType.value === '沙发' && designStyle.value === '现代') {
+  //   mockList.value = XD_SF
+  // } else if(pType.value === '沙发' && designStyle.value === '中国风') {
+  //   mockList.value = ZS_SF
+  // }
+}
 const onSpaceDefinitionClick = (label) => {
-  spaceDefinition.value = label
+  spaceDefinition.value = label;
+  renderInspirationLibrary()
 }
 // 处理标签页切换
 const handleTabClick = (tab) => {
@@ -236,18 +290,15 @@ const showFileList = ref([])
 const fileList = ref([
   {
     name: 'food.jpeg',
-    url: bai,
-  },
-  {
-    name: 'food.jpeg',
-    url: huxing,
+    url: 'https://gyl-lsprtgallery-sit.oss-cn-shenzhen.aliyuncs.com/gylFilesTest/20251022/176110553562419949_客厅.png',
   },
 ])
 
 // 产品类型
 const pType = ref('')
-const onPTypeClick = (label) => {
-  pType.value = label
+const onPTypeClick = (value) => {
+  pType.value = value;
+  renderInspirationLibrary()
 }
 
 
@@ -303,11 +354,11 @@ const handlePictureCardPreview = (uploadFile) => {
 const selectedInspiration = ref([])
 // 处理成品搭配点击
 const handleInspirationClick = (item) => {
-  if(selectedInspiration.value.includes(item.label)){
-    selectedInspiration.value = selectedInspiration.value.filter(i => i !== item.label)
+  if(selectedInspiration.value.includes(item.url)){
+    selectedInspiration.value = selectedInspiration.value.filter(i => i !== item.url)
     return
   }
-  selectedInspiration.value = [...selectedInspiration.value, item.label]
+  selectedInspiration.value = [...selectedInspiration.value, item.url]
 }
 </script>
 
@@ -392,6 +443,7 @@ const handleInspirationClick = (item) => {
   position: relative;
   transition: all .5s;
   width: 316px;
+  min-width: 316px;
   border: 1px solid var(--el-color-primary);
   border-radius: 8px;
   overflow-y: auto;
@@ -607,20 +659,21 @@ const handleInspirationClick = (item) => {
   }
   .inspiration-library {
     display: flex;
-    justify-content: space-between;
-    width: 56vh;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
     .inspiration-item {
       align-items: center;
       background-color: #171717;
       border-radius: 12px;
       cursor: pointer;
       display: flex;
-      height: 13vh;
+      height: 110px;
       justify-content: center;
-      width: 13vh;
+      width: 110px;
     }
     .inspiration-item:hover {
-      transform: scale(1.1);
+      transform: scale(1.03);
       transition: transform 0.5s ease;
     }
     .inspiration-item-seleted {
@@ -632,8 +685,9 @@ const handleInspirationClick = (item) => {
 /* 右侧结构设置面板 */
 .right-panel {
   width: 270px;
+  min-width: 270px;
   height: 100vh;
-  background-color: #1e1e1e;
+  background-color: #2e2e2e;
   padding: 8px;
   overflow-y: auto;
   border-left: 1px solid #444;
@@ -659,20 +713,21 @@ const handleInspirationClick = (item) => {
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 8px;;
+    gap: 8px;
+    max-height: 87vh;
+    overflow-y: auto;
     .inspiration-item {
       align-items: center;
       background-color: #171717;
       border-radius: 12px;
       cursor: pointer;
       display: flex;
-      height: 13vh;
+      height: 110px;
       justify-content: center;
-      width: 13vh;
+      width: 110px;
       border: 2px solid transparent;
     }
     .inspiration-item:hover {
-      transform: scale(1.03);
       transition: transform 0.5s ease;
     }
     .inspiration-item-seleted {

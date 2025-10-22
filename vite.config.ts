@@ -21,10 +21,10 @@ export default defineConfig({
     port: 5555, // 设置服务端口
     // https: 'HTTP/2', // 是否开启 https
     proxy: {
-      '/api1': {
-        target: 'http://127.0.0.1:8990/',
+      '/aiApi': {
+        target: 'http://10.20.1.69:8499/',
         changeOrigin: true,
-        rewrite: path => path.replace(/^\/api1/, '')
+        rewrite: path => path.replace(/^\/aiApi/, '')
       },
     }
   },
