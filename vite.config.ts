@@ -22,7 +22,7 @@ export default defineConfig({
     // https: 'HTTP/2', // 是否开启 https
     proxy: {
       '/aiApi': {
-        target: 'http://10.20.1.69:8499/',
+        target: 'https://plm-gyl-sit.linshimuye.com/api',
         changeOrigin: true,
         rewrite: path => path.replace(/^\/aiApi/, '')
       },

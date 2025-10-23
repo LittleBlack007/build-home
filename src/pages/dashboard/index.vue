@@ -9,7 +9,12 @@
           <h4>1.添加主体</h4>
           <div class="card-item">
             <div class="card-header">
-              <span class="card-font">主体视角</span>
+              <span class="card-font" style="white-space: nowrap;">主体视角</span>
+              <el-input size="small" v-model="subjectView" >
+                <template #append>
+                  <a href="javascript:;" @click="handleAddSubject">添加</a>
+                </template>
+              </el-input>
             </div>
             <div
               class="card-content"
@@ -168,16 +173,35 @@ import huxing from './images/户型图.png'
 import gen from './images/生成图.png'
 import axios from "axios";
 
+const sessionkey = localStorage.getItem('sessionkey') || '918C18C0185F4D67893DA9F37C5D9A57'
+
+// 处理添加主体
+const handleAddSubject = () => {
+  if(subjectView.value) {
+    fileList.value.push({
+      name: '主体视角',
+      url: subjectView.value,
+    })
+  }
+}
+
 // 加载状态
 const loading = ref(false)
 const genImge = ref(null)
 const taskId = ref('4836468373445143450')
 // 查询任务状态
 const queryTaskStatus = async () => {
-  if(!taskId.value) return;
+  if(!taskId.value) {
+    loading.value = false;
+    return;
+  };
   loading.value = true;
   let passIs = false;
-  axios.get(`/aiApi/Ai/Jm/query/${taskId.value}`).then((res) => {
+  axios.get(`/aiApi/plm-matrix/Ai/Jm/query/${taskId.value}`,{
+    headers: {
+      sessionkey,
+    }
+  }).then((res) => {
     if(res.data.state === 100 && res.data.data) {
       genImge.value = res.data.data;
       passIs = true;
@@ -201,28 +225,33 @@ const handleGenerateClick = async () => {
   genImge.value = null;
   loading.value = true
   // 模拟生成过程
-  await axios.post('/aiApi/Ai/Jm/generate-from-image', {
+  await axios.post('/aiApi/plm-matrix/Ai/Jm/generate-from-image', {
     "cfgScale": 7.5,
     "height": 1024,
     "image_urls": [
       ...fileList.value.map(item => item.url),
       ...selectedInspiration.value,
+      ...(subjectView.value ? [subjectView.value] : []),
     ],
     "kongJian": spaceDefinition.value,
     "model": "jimeng-v1.0",
     "negativePrompt": "string",
-    "prompt": specialDesc.value || '生成空间全景图',
+    "prompt": (specialDesc.value || '生成空间全景图') + (themeColor.value ? ',空间色系:' + themeColor.value : ''),
     "referenceStrength": 0.5,
     "samples": 1,
     "seed": 123456,
     "steps": 20,
     "styleType": designStyle.value,
     "width": 1024
+  },{
+    headers: {
+      sessionkey,
+    }
   }).then((res) => {
     console.log(res)
     if(res.data.state === 100) {
       const data = JSON.parse(res.data.data)
-      taskId.value = data.data.task_id;
+      taskId.value = data?.data?.task_id;
       queryTaskStatus();
     }
     
@@ -286,6 +315,7 @@ const handleTabClick = (tab) => {
   console.log('切换到标签页:', tab.name)
 }
 
+const subjectView = ref('')
 const showFileList = ref([])
 const fileList = ref([
   {
