@@ -109,10 +109,10 @@
         </template>
         <template v-else>
           <img class="model-image-preview" src="./images/gen.png" alt="3D模型视图" />
-          <div class="inspiration-library">
-            <img v-for="i in selectedInspiration" :key="i" class="inspiration-item" :src="i" @dblclick="handleInspirationClick({url: i})" />
-          </div>
         </template>
+        <div class="inspiration-library">
+          <img v-for="i in selectedInspiration" :key="i" class="inspiration-item" :src="i" @dblclick="handleInspirationClick({url: i})" />
+        </div>
       </div>
 
       <!-- 右侧结构设置面板 -->
@@ -173,7 +173,7 @@ import huxing from './images/户型图.png'
 import gen from './images/生成图.png'
 import axios from "axios";
 
-const sessionkey = localStorage.getItem('sessionkey') || '918C18C0185F4D67893DA9F37C5D9A57'
+const sessionkey = localStorage.getItem('sessionkey') || '6A6B5FBB6CD44D0D92938C000A29BEB4'
 
 // 处理添加主体
 const handleAddSubject = () => {
@@ -197,7 +197,7 @@ const queryTaskStatus = async () => {
   };
   loading.value = true;
   let passIs = false;
-  axios.get(`/aiApi/plm-matrix/Ai/Jm/query/${taskId.value}`,{
+  axios.get(`/aiApi/plm-matrix/Ai/Jm/queryImageUrl?taskId=${taskId.value}`,{
     headers: {
       sessionkey,
     }
@@ -690,8 +690,11 @@ const handleInspirationClick = (item) => {
   .inspiration-library {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
     gap: 8px;
     width: 100%;
+    margin-top: 12px;
     .inspiration-item {
       align-items: center;
       background-color: #171717;
