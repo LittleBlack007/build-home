@@ -173,7 +173,7 @@ import huxing from './images/户型图.png'
 import gen from './images/生成图.png'
 import axios from "axios";
 
-const sessionkey = localStorage.getItem('sessionkey') || '918C18C0185F4D67893DA9F37C5D9A57'
+const sessionkey = localStorage.getItem('sessionkey') || '5B7BF804C30F496ABEE8E28FC4589D3A'
 
 // 处理添加主体
 const handleAddSubject = () => {
@@ -253,11 +253,15 @@ const handleGenerateClick = async () => {
       const data = JSON.parse(res.data.data)
       taskId.value = data?.data?.task_id;
       queryTaskStatus();
+    }else {
+      loading.value = false;
+      ElMessage({message: res.data.msg, type: 'error'});
     }
     
   }).catch((error) => {
+    
     console.log(error);
-  });
+  })
 }
 
 // 空间尺寸
